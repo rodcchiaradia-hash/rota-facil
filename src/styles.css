@@ -240,3 +240,4 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 }
 .janela p { margin: 0; }
 @keyframes subir { from { transform: translateY(40px); opacity: 0; } }
+.lista li.carregado { background: #EFFAF3; border-color: var(--verde); }

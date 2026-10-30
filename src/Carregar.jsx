@@ -22,6 +22,13 @@ export default function Carregar({ usuario, onVoltar }) {
     setRota((r) => (r.carregados.includes(id) ? r : { ...r, carregados: [...r.carregados, id] }))
   }
 
+  function alternar(id) {
+    setRota((r) => ({
+      ...r,
+      carregados: r.carregados.includes(id) ? r.carregados.filter((c) => c !== id) : [...r.carregados, id],
+    }))
+  }
+
   function leu(codigo) {
     codigo = codigo.trim()
     const agora = Date.now()
@@ -33,7 +40,8 @@ export default function Carregar({ usuario, onVoltar }) {
     const indice = r.paradas.findIndex((p) => p.codigo === codigo)
     if (indice < 0) {
       bipe(220, 0.35); navigator.vibrate?.([120, 80, 120])
-      return setUltimo({ tipo: 'fora', codigo })
+      const semMapa = r.naoLocalizados.some((p) => p.codigo === codigo)
+      return setUltimo({ tipo: 'fora', codigo, semMapa })
     }
     const parada = r.paradas[indice]
     const repetido = r.carregados.includes(parada.id)
@@ -45,7 +53,8 @@ export default function Carregar({ usuario, onVoltar }) {
 
   const total = rota.paradas.length
   const carregados = rota.carregados.length
-  const semCodigo = rota.paradas.map((p, i) => ({ ...p, numero: p.numero ?? i + 1 })).filter((p) => !p.codigo)
+  const todas = rota.paradas.map((p, i) => ({ ...p, numero: p.numero ?? i + 1 }))
+  const faltam = todas.filter((p) => !rota.carregados.includes(p.id))
 
   return (
     <main className="tela tela-escanear">
@@ -61,7 +70,9 @@ export default function Carregar({ usuario, onVoltar }) {
       </div>
 
       {ultimo?.tipo === 'fora' && (
-        <section className="resultado falta"><strong>Pacote fora da rota</strong><p>{ultimo.codigo} não está na rota de hoje.</p></section>
+        <section className="resultado falta"><strong>Pacote fora da rota</strong><p>{ultimo.semMapa
+          ? `${ultimo.codigo}: o endereço não foi achado no mapa, por isso ficou fora da rota. Corrija o endereço no passo 1 e monte a rota de novo.`
+          : `${ultimo.codigo} não está na rota de hoje.`}</p></section>
       )}
       {ultimo && ultimo.tipo !== 'fora' && (
         <section className={`etiqueta-parada ${ultimo.tipo}`}>
@@ -79,20 +90,34 @@ export default function Carregar({ usuario, onVoltar }) {
         <section className="resultado ok"><strong>Tudo carregado!</strong><p>Pode sair para as entregas.</p></section>
       )}
 
-      {semCodigo.length > 0 && (
-        <section className="cartao">
-          <strong>Pacotes sem código: marque ao carregar</strong>
-          <ul className="lista">
-            {semCodigo.map((p) => (
-              <li key={p.id}>
-                <span className="ordem">{p.numero}</span>
-                <span className="conteudo"><span className="endereco">{p.endereco}</span>
-                  <span className="dica">Bag {bagDaParada(p.numero, rota.tamanhoBag)}</span></span>
-                <input type="checkbox" className="marcar" checked={rota.carregados.includes(p.id)}
-                  onChange={() => marcar(p.id)} aria-label="Carregado" />
-              </li>
-            ))}
-          </ul>
+      {faltam.length > 0 && (
+        <p className="dica centro">
+          Faltam {faltam.length}. Escaneie cada pacote ou, se não tiver código ou não ler, marque na lista abaixo.
+        </p>
+      )}
+
+      <section className="cartao">
+        <strong>Pacotes da rota</strong>
+        <ul className="lista">
+          {todas.map((p) => (
+            <li key={p.id} className={rota.carregados.includes(p.id) ? 'carregado' : ''}>
+              <span className="ordem">{p.numero}</span>
+              <span className="conteudo">
+                <span className="endereco">{p.endereco}</span>
+                <span className="dica">Bag {bagDaParada(p.numero, rota.tamanhoBag)} · {p.codigo || 'sem código'}</span>
+              </span>
+              <input type="checkbox" className="marcar" checked={rota.carregados.includes(p.id)}
+                onChange={() => alternar(p.id)} aria-label="Carregado" />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {rota.naoLocalizados.length > 0 && (
+        <section className="resultado falta">
+          <strong>Fora da rota ({rota.naoLocalizados.length})</strong>
+          {rota.naoLocalizados.map((p) => <p key={p.id}>• {p.endereco}</p>)}
+          <p>Endereço não achado no mapa. Corrija no passo 1 e monte a rota de novo.</p>
         </section>
       )}
     </main>
