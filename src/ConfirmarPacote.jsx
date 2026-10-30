@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react'
 import { buscarCep, formatarCep, montarEndereco } from './cep.js'
 import { lerTextoDaFoto, extrairEndereco } from './ocr.js'
+import CameraFoto from './CameraFoto.jsx'
 
 const VAZIO = { cep: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '' }
 
-// Conferência do pacote antes de salvar: mostra o endereço completo e deixa corrigir.
-// Usada depois de ler o código de barras, ao fotografar a etiqueta e ao digitar.
-export default function ConfirmarPacote({ codigo = '', comFoto = false, onSalvar, onCancelar }) {
+// Endereço do pacote: primeiro a foto (a câmera já abre), digitar só em último caso.
+// Antes de salvar sempre mostra o endereço completo para conferir e corrigir.
+export default function ConfirmarPacote({ codigo = '', comecarPelaFoto = true, onSalvar, onCancelar }) {
+  const [etapa, setEtapa] = useState(comecarPelaFoto ? 'foto' : 'campos')
   const [campos, setCampos] = useState(VAZIO)
   const [buscando, setBuscando] = useState(false)
   const [aviso, setAviso] = useState('')
@@ -43,10 +45,8 @@ export default function ConfirmarPacote({ codigo = '', comFoto = false, onSalvar
     preencherPeloCep(cep, true)
   }
 
-  async function escolheuFoto(e) {
-    const arquivo = e.target.files?.[0]
-    e.target.value = ''
-    if (!arquivo) return
+  async function tirouFoto(arquivo) {
+    setEtapa('campos')
     setAviso(''); setTextoLido('')
     setFoto(URL.createObjectURL(arquivo))
     setProgresso(0)
@@ -70,22 +70,37 @@ export default function ConfirmarPacote({ codigo = '', comFoto = false, onSalvar
     onSalvar({ codigo, endereco: completo ? endereco : '' })
   }
 
+  const cabecalho = codigo && (
+    <div className="lido">
+      <span>Código do pacote ✓</span>
+      <strong>{codigo}</strong>
+    </div>
+  )
+
+  if (etapa === 'foto') {
+    return (
+      <div className="painel">
+        {cabecalho}
+        <CameraFoto onFoto={tirouFoto} onDigitar={() => setEtapa('campos')} />
+        {codigo && (
+          <button type="button" className="botao-texto" onClick={() => onSalvar({ codigo, endereco: '' })}>
+            Salvar só o código e completar depois
+          </button>
+        )}
+        {onCancelar && <button type="button" className="botao-texto perigo" onClick={onCancelar}>Cancelar</button>}
+      </div>
+    )
+  }
+
   return (
     <form className="painel" onSubmit={salvar}>
-      {codigo && (
-        <div className="lido">
-          <span>Código lido</span>
-          <strong>{codigo}</strong>
-        </div>
-      )}
+      {cabecalho}
 
-      <label className={`botao ${comFoto ? 'principal grande' : 'secundario'} botao-arquivo`}>
-        📷 {foto ? 'Tirar outra foto' : 'Fotografar o endereço da etiqueta'}
-        <input type="file" accept="image/*" capture="environment" onChange={escolheuFoto} hidden />
-      </label>
-      {comFoto && !foto && <p className="dica">Enquadre o bloco do endereço, de perto e com boa luz. Ou digite abaixo.</p>}
       {foto && <img className="previa" src={foto} alt="Foto da etiqueta" />}
-      {progresso !== null && <p className="dica">Lendo o texto… {progresso}%</p>}
+      {progresso !== null && <p className="dica">Lendo o endereço da foto… {progresso}%</p>}
+      <button type="button" className="botao secundario" onClick={() => setEtapa('foto')}>
+        📸 {foto ? 'Tirar outra foto' : 'Fotografar o endereço'}
+      </button>
       {textoLido && (
         <details className="texto-lido">
           <summary>Ver o texto lido da foto</summary>

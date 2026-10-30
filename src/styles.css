@@ -139,3 +139,6 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 .texto-lido pre { white-space: pre-wrap; font-size: 13px; background: var(--fundo); padding: 10px; border-radius: 8px; margin: 8px 0 0; }
 .sem-endereco { color: var(--amarelo); font-size: 13px; font-weight: 700; }
 .completar { color: #9A6B00; padding: 2px 0; text-align: left; font-size: 14px; }
+.camera-foto { display: flex; flex-direction: column; gap: 10px; }
+.camera-foto video { width: 100%; display: block; max-height: 55dvh; object-fit: cover; }
+.camera-foto .camera-erro { color: #fff; }

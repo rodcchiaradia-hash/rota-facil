@@ -5,8 +5,8 @@ import { lerPacotes, salvarPacotes } from './pacotes.js'
 
 const INTERVALO_MESMO_CODIGO = 2500
 const MODOS = [
-  { id: 'camera', nome: 'QR / Barras' },
-  { id: 'foto', nome: 'Foto do endereço' },
+  { id: 'camera', nome: 'Código + foto' },
+  { id: 'foto', nome: 'Só foto' },
   { id: 'digitar', nome: 'Digitar' },
 ]
 
@@ -120,8 +120,8 @@ export default function Escanear({ usuario, onVoltar }) {
       {modo === 'camera' && codigoLido && (
         <ConfirmarPacote codigo={codigoLido} onSalvar={(d) => salvar(d, 'camera')} onCancelar={() => setCodigoLido('')} />
       )}
-      {modo === 'foto' && <ConfirmarPacote key={formulario} comFoto onSalvar={(d) => salvar(d, 'foto')} />}
-      {modo === 'digitar' && <ConfirmarPacote key={formulario} onSalvar={(d) => salvar(d, 'digitado')} />}
+      {modo === 'foto' && <ConfirmarPacote key={formulario} onSalvar={(d) => salvar(d, 'foto')} />}
+      {modo === 'digitar' && <ConfirmarPacote key={formulario} comecarPelaFoto={false} onSalvar={(d) => salvar(d, 'digitado')} />}
 
       {mensagem && <div key={mensagem.id} className={`flash ${mensagem.tipo}`}>{mensagem.texto}</div>}
 
