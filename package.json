@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Rota Fácil: app para entregadores autônomos (PWA)",
   "scripts": {
+    "predev": "node scripts/copiar-ocr.mjs",
     "dev": "vite --host",
+    "prebuild": "node scripts/copiar-ocr.mjs",
     "build": "vite build",
     "preview": "vite preview --host"
   },
@@ -17,9 +19,11 @@
   "homepage": "https://github.com/rodcchiaradia-hash/rota-facil#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
+    "@tesseract.js-data/por": "^1.0.0",
     "html5-qrcode": "^2.3.8",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.7.0",

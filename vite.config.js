@@ -11,6 +11,17 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Os arquivos de leitura de texto são grandes: baixados só no primeiro uso e guardados depois.
+        globIgnores: ['ocr/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/ocr/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'ocr' },
+          },
+        ],
+      },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Rota Fácil',

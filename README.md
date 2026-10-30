@@ -9,8 +9,11 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
 
 - App instalável no celular (ícone na tela inicial, abre em tela cheia).
 - Login por e-mail e senha (criar conta, entrar, recuperar senha).
-- Passo 1: escanear QR Code e código de barras pela câmera, com aviso de pacote repetido,
-  bipe/vibração, digitação manual quando a etiqueta não lê e lista dos pacotes do dia.
+- Passo 1, três jeitos de adicionar pacote:
+  - **QR / Barras:** câmera ao vivo lendo QR Code e código de barras, com bipe/vibração e aviso de repetido.
+  - **Foto do endereço:** tira foto da etiqueta e lê o texto no próprio celular (Tesseract.js, português);
+    a pessoa confere e corrige antes de salvar. Os arquivos do leitor são baixados no primeiro uso.
+  - **Digitar:** código e/ou endereço (rua, complemento, bairro, cidade).
 
 ## Modo de teste x servidor
 

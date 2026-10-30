@@ -1,15 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { Html5Qrcode, Html5QrcodeSupportedFormats as F } from 'html5-qrcode'
+import Camera from './Camera.jsx'
+import FotoEndereco from './FotoEndereco.jsx'
+import Digitar from './Digitar.jsx'
 import { lerPacotes, salvarPacotes } from './pacotes.js'
 
-const FORMATOS = [F.QR_CODE, F.CODE_128, F.CODE_39, F.CODE_93, F.EAN_13, F.EAN_8, F.ITF, F.DATA_MATRIX, F.PDF_417, F.UPC_A]
 const INTERVALO_MESMO_CODIGO = 2500
+const MODOS = [
+  { id: 'camera', nome: 'QR / Barras' },
+  { id: 'foto', nome: 'Foto do endereço' },
+  { id: 'digitar', nome: 'Digitar' },
+]
 
 export default function Escanear({ usuario, onVoltar }) {
   const [pacotes, setPacotes] = useState(() => lerPacotes(usuario.id))
+  const [modo, setModo] = useState('camera')
   const [mensagem, setMensagem] = useState(null)
   const [erroCamera, setErroCamera] = useState('')
-  const [digitado, setDigitado] = useState('')
   const ultimaLeitura = useRef({ codigo: '', quando: 0 })
   const pacotesRef = useRef(pacotes)
 
@@ -18,20 +24,25 @@ export default function Escanear({ usuario, onVoltar }) {
     salvarPacotes(usuario.id, pacotes)
   }, [pacotes, usuario.id])
 
-  function registrar(codigo, origem) {
+  function registrar({ codigo = '', endereco = '' }, origem) {
     codigo = codigo.trim()
-    if (!codigo) return
+    endereco = endereco.trim()
+    if (!codigo && !endereco) return
     const agora = Date.now()
-    const ultima = ultimaLeitura.current
-    // A câmera lê o mesmo código várias vezes por segundo: ignora repetições imediatas.
-    if (origem === 'camera' && ultima.codigo === codigo && agora - ultima.quando < INTERVALO_MESMO_CODIGO) return
-    ultimaLeitura.current = { codigo, quando: agora }
-
-    if (pacotesRef.current.some((p) => p.codigo === codigo)) {
-      avisar('repetido', 'Este pacote já foi escaneado')
-      return
+    if (origem === 'camera') {
+      // A câmera lê o mesmo código várias vezes por segundo: ignora repetições imediatas.
+      const ultima = ultimaLeitura.current
+      if (ultima.codigo === codigo && agora - ultima.quando < INTERVALO_MESMO_CODIGO) return
+      ultimaLeitura.current = { codigo, quando: agora }
     }
-    setPacotes((lista) => [{ codigo, origem, quando: agora }, ...lista])
+
+    const repetido = pacotesRef.current.some(
+      (p) => (codigo && p.codigo === codigo) || (!codigo && endereco && normalizar(p.endereco) === normalizar(endereco)),
+    )
+    if (repetido) return avisar('repetido', 'Este pacote já foi adicionado')
+
+    const id = codigo || `end-${agora}`
+    setPacotes((lista) => [{ id, codigo, endereco, origem, quando: agora }, ...lista])
     avisar('ok', 'Pacote adicionado')
   }
 
@@ -47,38 +58,8 @@ export default function Escanear({ usuario, onVoltar }) {
     return () => clearTimeout(t)
   }, [mensagem])
 
-  useEffect(() => {
-    const leitor = new Html5Qrcode('camera', {
-      formatsToSupport: FORMATOS,
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-      verbose: false,
-    })
-    const iniciando = leitor
-      .start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          // Área de leitura larga, boa para código de barras e QR.
-          qrbox: (w, h) => ({ width: Math.floor(w * 0.85), height: Math.floor(Math.min(h * 0.6, w * 0.6)) }),
-        },
-        (codigo) => registrar(codigo, 'camera'),
-        () => {},
-      )
-      .catch((e) => setErroCamera(textoErroCamera(e)))
-
-    return () => {
-      iniciando.then(() => leitor.isScanning && leitor.stop()).then(() => leitor.clear()).catch(() => {})
-    }
-  }, [])
-
-  function adicionarDigitado(e) {
-    e.preventDefault()
-    registrar(digitado, 'digitado')
-    setDigitado('')
-  }
-
-  function remover(codigo) {
-    setPacotes((lista) => lista.filter((p) => p.codigo !== codigo))
+  function remover(id) {
+    setPacotes((lista) => lista.filter((p) => chave(p) !== id))
   }
 
   function limpar() {
@@ -93,30 +74,41 @@ export default function Escanear({ usuario, onVoltar }) {
         <span />
       </header>
 
-      <div className="camera-caixa">
-        <div id="camera" />
-        {erroCamera && <p className="erro camera-erro">{erroCamera}</p>}
-        {mensagem && <div key={mensagem.id} className={`flash ${mensagem.tipo}`}>{mensagem.texto}</div>}
+      <div className="abas" role="tablist">
+        {MODOS.map((m) => (
+          <button key={m.id} role="tab" aria-selected={modo === m.id}
+            className={modo === m.id ? 'ativa' : ''} onClick={() => setModo(m.id)}>
+            {m.nome}
+          </button>
+        ))}
       </div>
+
+      {modo === 'camera' && (
+        <div className="camera-caixa">
+          <Camera onLeu={(codigo) => registrar({ codigo }, 'camera')} onErro={setErroCamera} />
+          {erroCamera && <p className="erro camera-erro">{erroCamera}</p>}
+        </div>
+      )}
+      {modo === 'foto' && <FotoEndereco onSalvar={(endereco) => registrar({ endereco }, 'foto')} />}
+      {modo === 'digitar' && <Digitar onSalvar={(dados) => registrar(dados, 'digitado')} />}
+
+      {mensagem && <div key={mensagem.id} className={`flash ${mensagem.tipo}`}>{mensagem.texto}</div>}
 
       <div className="contador">
         <span className="numero-grande">{pacotes.length}</span>
         <span>{pacotes.length === 1 ? 'pacote' : 'pacotes'}</span>
       </div>
 
-      <form className="digitar" onSubmit={adicionarDigitado}>
-        <input value={digitado} onChange={(e) => setDigitado(e.target.value)}
-          placeholder="Não leu? Digite o código" inputMode="text" autoCapitalize="characters" />
-        <button className="botao principal" disabled={!digitado.trim()}>Adicionar</button>
-      </form>
-
       <ul className="lista">
         {pacotes.map((p, i) => (
-          <li key={p.codigo}>
+          <li key={chave(p)}>
             <span className="ordem">{pacotes.length - i}</span>
-            <span className="codigo">{p.codigo}</span>
-            {p.origem === 'digitado' && <span className="etiqueta">digitado</span>}
-            <button className="remover" onClick={() => remover(p.codigo)} aria-label="Remover">✕</button>
+            <span className="conteudo">
+              {p.codigo && <span className="codigo">{p.codigo}</span>}
+              {p.endereco && <span className="endereco">{p.endereco}</span>}
+            </span>
+            {p.origem !== 'camera' && <span className="etiqueta">{p.origem === 'foto' ? 'foto' : 'digitado'}</span>}
+            <button className="remover" onClick={() => remover(chave(p))} aria-label="Remover">✕</button>
           </li>
         ))}
       </ul>
@@ -125,13 +117,9 @@ export default function Escanear({ usuario, onVoltar }) {
   )
 }
 
-function textoErroCamera(e) {
-  const msg = String(e?.message || e)
-  if (/permission|notallowed/i.test(msg)) return 'Sem permissão para a câmera. Libere a câmera para este site nas configurações do navegador.'
-  if (/notfound|no camera|requested device not found/i.test(msg)) return 'Nenhuma câmera encontrada neste aparelho.'
-  if (/secure|https/i.test(msg)) return 'A câmera só funciona em endereço seguro (https).'
-  return 'Não foi possível abrir a câmera. Você pode digitar o código abaixo.'
-}
+// Pacotes da primeira versão só tinham "codigo".
+const chave = (p) => p.id || p.codigo
+const normalizar = (s = '') => s.toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '')
 
 let audio
 function bipe(freq, duracao) {
