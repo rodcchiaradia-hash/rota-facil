@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { lerPacotes } from './pacotes.js'
 import { lerRota, salvarRota, lerCasa, salvarCasa, bagDaParada, rotaDesatualizada } from './rota.js'
 import { localizar, minhaLocalizacao, otimizarRota } from './geo.js'
-import Mapa from './Mapa.jsx'
+import Mapa, { pontosDaRota } from './Mapa.jsx'
 
 // Passo 3: partida, destino final, melhor ordem das entregas e separação em bags.
-export default function Rota({ usuario, onVoltar, onCarregar }) {
+export default function Rota({ usuario, onVoltar, onCarregar, onEmRota }) {
   const pacotes = lerPacotes(usuario.id).filter((p) => p.endereco)
   const [rota, setRota] = useState(() => lerRota(usuario.id))
   const [casa, setCasa] = useState(() => lerCasa(usuario.id))
@@ -66,7 +66,8 @@ export default function Rota({ usuario, onVoltar, onCarregar }) {
       const { ordem, distancia, duracao, caminho } = await otimizarRota(partida, localizados, destino)
       const nova = {
         partida, destino, caminho, distancia, duracao, naoLocalizados,
-        paradas: ordem.map((i) => localizados[i]),
+        paradas: ordem.map((i, n) => ({ ...localizados[i], numero: n + 1 })),
+        entregas: {},
         tamanhoBag: rota?.tamanhoBag || 10,
         carregados: [],
         criadaEm: Date.now(),
@@ -167,7 +168,7 @@ export default function Rota({ usuario, onVoltar, onCarregar }) {
             <button className={ver === 'bags' ? 'ativa' : ''} onClick={() => setVer('bags')}>Bags</button>
           </div>
 
-          {ver === 'mapa' && <Mapa rota={rota} />}
+          {ver === 'mapa' && <Mapa pontos={pontosDaRota(rota)} caminho={rota.caminho} />}
 
           {ver === 'lista' && (
             <ol className="paradas">
@@ -206,8 +207,11 @@ export default function Rota({ usuario, onVoltar, onCarregar }) {
             </section>
           )}
 
-          <button className="botao principal grande" onClick={onCarregar}>
+          <button className="botao secundario" onClick={onCarregar}>
             Carregar o carro: reescanear pacotes
+          </button>
+          <button className="botao principal grande" onClick={onEmRota}>
+            🚚 Começar as entregas
           </button>
         </>
       )}

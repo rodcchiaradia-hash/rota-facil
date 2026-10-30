@@ -38,13 +38,14 @@ export default function Carregar({ usuario, onVoltar }) {
     const parada = r.paradas[indice]
     const repetido = r.carregados.includes(parada.id)
     bipe(repetido ? 440 : 880, 0.15); navigator.vibrate?.(80)
-    setUltimo({ tipo: repetido ? 'repetido' : 'ok', numero: indice + 1, bag: bagDaParada(indice + 1, r.tamanhoBag), endereco: parada.endereco })
+    const numero = parada.numero ?? indice + 1
+    setUltimo({ tipo: repetido ? 'repetido' : 'ok', numero, bag: bagDaParada(numero, r.tamanhoBag), endereco: parada.endereco })
     marcar(parada.id)
   }
 
   const total = rota.paradas.length
   const carregados = rota.carregados.length
-  const semCodigo = rota.paradas.map((p, i) => ({ ...p, numero: i + 1 })).filter((p) => !p.codigo)
+  const semCodigo = rota.paradas.map((p, i) => ({ ...p, numero: p.numero ?? i + 1 })).filter((p) => !p.codigo)
 
   return (
     <main className="tela tela-escanear">

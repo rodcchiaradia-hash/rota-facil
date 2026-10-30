@@ -6,6 +6,7 @@ import Escanear from './Escanear.jsx'
 import Conferir from './Conferir.jsx'
 import Rota from './Rota.jsx'
 import Carregar from './Carregar.jsx'
+import EmRota from './EmRota.jsx'
 
 export default function App() {
   const [usuario, setUsuario] = useState(undefined)
@@ -26,7 +27,9 @@ export default function App() {
       ) : tela === 'escanear' ? (
         <Escanear usuario={usuario} onVoltar={() => setTela('inicio')} />
       ) : tela === 'rota' ? (
-        <Rota usuario={usuario} onVoltar={() => setTela('inicio')} onCarregar={() => setTela('carregar')} />
+        <Rota usuario={usuario} onVoltar={() => setTela('inicio')} onCarregar={() => setTela('carregar')} onEmRota={() => setTela('emrota')} />
+      ) : tela === 'emrota' ? (
+        <EmRota usuario={usuario} onVoltar={() => setTela('inicio')} />
       ) : tela === 'carregar' ? (
         <Carregar usuario={usuario} onVoltar={() => setTela('rota')} />
       ) : tela === 'conferir' ? (

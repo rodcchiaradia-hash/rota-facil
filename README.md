@@ -9,6 +9,11 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
 
 - App instalável no celular (ícone na tela inicial, abre em tela cheia).
 - Login por e-mail e senha (criar conta, entrar, recuperar senha).
+- Passo 4, em rota: pacote da vez (parada, bag, distância), botões para navegar no Google Maps ou Waze,
+  "Entregue", problemas (ausente, endereço errado, recusado), entrega fora de ordem pela lista ou
+  escaneando o pacote, contador entregues/faltam/total (o total nunca diminui), mapa só com o que falta e
+  a posição atual, recálculo da ordem a cada entrega, alerta ao chegar perto (150 m), tela sempre acesa
+  e troca do destino final a qualquer momento.
 - Passo 3, rota e separação: partida pelo GPS (ou endereço), destino final (casa salva, outro endereço ou
   terminar na última entrega). Os endereços são localizados no mapa (Nominatim/Photon, OpenStreetMap) e a
   melhor ordem é calculada pelo OSRM (servidor público de demonstração, sem trânsito). Mostra mapa com paradas

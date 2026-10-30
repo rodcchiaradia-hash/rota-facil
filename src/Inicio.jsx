@@ -9,6 +9,7 @@ export default function Inicio({ usuario, onAbrir, onSair }) {
   const esperado = lerEsperado(usuario.id)
   const rota = lerRota(usuario.id)
   const comEndereco = pacotes.filter((p) => p.endereco).length
+  const feitas = rota ? Object.keys(rota.entregas || {}).length : 0
   const carregado = rota && rota.paradas.length > 0 && rota.carregados.length === rota.paradas.length
   const conferido = esperado > 0 && esperado === total && pacotes.every((p) => p.endereco)
 
@@ -55,10 +56,19 @@ export default function Inicio({ usuario, onAbrir, onSair }) {
         <span className="seta">›</span>
       </button>
 
+      <button className="cartao passo clicavel" onClick={() => onAbrir('emrota')} disabled={!rota?.paradas.length}>
+        <span className={`numero ${rota && feitas === rota.paradas.length && feitas ? 'feito' : ''}`}>4</span>
+        <div>
+          <h2>Em rota</h2>
+          <p>Pacote da vez, mapa e entregas.</p>
+          {rota && feitas > 0 && <p className="contagem-pequena">{feitas} de {rota.paradas.length} feitas</p>}
+        </div>
+        <span className="seta">›</span>
+      </button>
+
       <section className="em-breve">
         <h3>Em breve</h3>
-        <ol start={4}>
-          <li>Em rota, com mapa</li>
+        <ol start={5}>
           <li>Registro da entrega</li>
         </ol>
       </section>
