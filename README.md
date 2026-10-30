@@ -13,7 +13,8 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
   - **QR / Barras:** câmera ao vivo lendo QR Code e código de barras, com bipe/vibração e aviso de repetido.
   - **Foto do endereço:** tira foto da etiqueta e lê o texto no próprio celular (Tesseract.js, português);
     a pessoa confere e corrige antes de salvar. Os arquivos do leitor são baixados no primeiro uso.
-  - **Digitar:** código e/ou endereço (rua, complemento, bairro, cidade).
+  - **Digitar:** começa pelo CEP, que preenche rua, bairro e cidade (ViaCEP, com BrasilAPI de reserva);
+    o entregador só digita número e complemento.
 
 ## Modo de teste x servidor
 
