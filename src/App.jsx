@@ -3,6 +3,7 @@ import { usuarioAtual, aoMudarLogin, sair, modoTeste } from './auth.js'
 import Login from './Login.jsx'
 import Inicio from './Inicio.jsx'
 import Escanear from './Escanear.jsx'
+import Conferir from './Conferir.jsx'
 
 export default function App() {
   const [usuario, setUsuario] = useState(undefined)
@@ -22,10 +23,12 @@ export default function App() {
         <Login onEntrou={setUsuario} />
       ) : tela === 'escanear' ? (
         <Escanear usuario={usuario} onVoltar={() => setTela('inicio')} />
+      ) : tela === 'conferir' ? (
+        <Conferir usuario={usuario} onVoltar={() => setTela('inicio')} onEscanear={() => setTela('escanear')} />
       ) : (
         <Inicio
           usuario={usuario}
-          onEscanear={() => setTela('escanear')}
+          onAbrir={setTela}
           onSair={async () => { await sair(); setUsuario(null) }}
         />
       )}

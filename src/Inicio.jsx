@@ -1,9 +1,12 @@
 import Logo from './Logo.jsx'
 import Instalar from './Instalar.jsx'
-import { lerPacotes } from './pacotes.js'
+import { lerPacotes, lerEsperado } from './pacotes.js'
 
-export default function Inicio({ usuario, onEscanear, onSair }) {
-  const total = lerPacotes(usuario.id).length
+export default function Inicio({ usuario, onAbrir, onSair }) {
+  const pacotes = lerPacotes(usuario.id)
+  const total = pacotes.length
+  const esperado = lerEsperado(usuario.id)
+  const conferido = esperado > 0 && esperado === total && pacotes.every((p) => p.endereco)
 
   return (
     <main className="tela">
@@ -13,22 +16,30 @@ export default function Inicio({ usuario, onEscanear, onSair }) {
       </header>
       <p className="ola">Olá, {usuario.email}</p>
 
-      <section className="cartao passo">
-        <span className="numero">1</span>
+      <button className="cartao passo clicavel" onClick={() => onAbrir('escanear')}>
+        <span className={`numero ${total ? 'feito' : ''}`}>1</span>
         <div>
           <h2>Escanear pacotes</h2>
-          <p>Aponte a câmera para o QR Code ou código de barras da etiqueta.</p>
-          {total > 0 && <p className="contagem-pequena">{total} {total === 1 ? 'pacote escaneado' : 'pacotes escaneados'} hoje</p>}
+          <p>Código de barras e foto do endereço.</p>
+          {total > 0 && <p className="contagem-pequena">{total} {total === 1 ? 'pacote escaneado' : 'pacotes escaneados'}</p>}
         </div>
-      </section>
-      <button className="botao principal grande" onClick={onEscanear}>
-        {total > 0 ? 'Continuar escaneando' : 'Começar a escanear'}
+        <span className="seta">›</span>
+      </button>
+
+      <button className="cartao passo clicavel" onClick={() => onAbrir('conferir')} disabled={!total}>
+        <span className={`numero ${conferido ? 'feito' : ''}`}>2</span>
+        <div>
+          <h2>Conferência</h2>
+          <p>Quantos pegou x quantos escaneou.</p>
+          {conferido && <p className="contagem-pequena">Tudo certo</p>}
+          {esperado > 0 && !conferido && <p className="contagem-alerta">{total} de {esperado} · confira</p>}
+        </div>
+        <span className="seta">›</span>
       </button>
 
       <section className="em-breve">
         <h3>Em breve</h3>
-        <ol start={2}>
-          <li>Conferência dos pacotes</li>
+        <ol start={3}>
           <li>Rota e separação</li>
           <li>Em rota, com mapa</li>
           <li>Registro da entrega</li>

@@ -12,3 +12,14 @@ export function lerPacotes(usuarioId) {
 export function salvarPacotes(usuarioId, pacotes) {
   localStorage.setItem(chave(usuarioId), JSON.stringify(pacotes))
 }
+
+// Quantidade de pacotes que o entregador pegou na base (informada por ele no passo 2).
+const chaveEsperado = (usuarioId) => `rf:esperado:${usuarioId}`
+
+export function lerEsperado(usuarioId) {
+  return Number(localStorage.getItem(chaveEsperado(usuarioId))) || 0
+}
+
+export function salvarEsperado(usuarioId, quantidade) {
+  localStorage.setItem(chaveEsperado(usuarioId), String(quantidade))
+}
