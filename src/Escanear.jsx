@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Camera from './Camera.jsx'
 import ConfirmarPacote from './ConfirmarPacote.jsx'
 import { lerPacotes, salvarPacotes } from './pacotes.js'
+import { bipe } from './som.js'
 
 const INTERVALO_MESMO_CODIGO = 2500
 const MODOS = [
@@ -41,21 +42,21 @@ export default function Escanear({ usuario, onVoltar }) {
     setCodigoLido(codigo)
   }
 
-  function salvar({ codigo = '', endereco = '' }, origem) {
+  function salvar({ codigo = '', endereco = '', campos = null }, origem) {
     const repetido = pacotesRef.current.some(
       (p) => (codigo && p.codigo === codigo) || (!codigo && endereco && normalizar(p.endereco) === normalizar(endereco)),
     )
     if (repetido) return avisar('repetido', 'Este pacote já foi adicionado')
     const agora = Date.now()
-    setPacotes((lista) => [{ id: codigo || `end-${agora}`, codigo, endereco, origem, quando: agora }, ...lista])
+    setPacotes((lista) => [{ id: codigo || `end-${agora}`, codigo, endereco, campos, origem, quando: agora }, ...lista])
     avisar('ok', endereco ? 'Pacote adicionado' : 'Código salvo. Complete o endereço depois')
     setCodigoLido('')
     setFormulario((n) => n + 1)
   }
 
-  function completar({ endereco }) {
+  function completar({ endereco, campos }) {
     if (endereco) {
-      setPacotes((lista) => lista.map((p) => (chave(p) === chave(completando) ? { ...p, endereco } : p)))
+      setPacotes((lista) => lista.map((p) => (chave(p) === chave(completando) ? { ...p, endereco, campos } : p)))
       avisar('ok', 'Endereço completado')
     }
     setCompletando(null)
@@ -155,17 +156,3 @@ export default function Escanear({ usuario, onVoltar }) {
 // Pacotes da primeira versão só tinham "codigo".
 const chave = (p) => p.id || p.codigo
 const normalizar = (s = '') => s.toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '')
-
-let audio
-function bipe(freq, duracao) {
-  try {
-    audio ??= new (window.AudioContext || window.webkitAudioContext)()
-    const osc = audio.createOscillator()
-    const vol = audio.createGain()
-    osc.frequency.value = freq
-    vol.gain.value = 0.15
-    osc.connect(vol).connect(audio.destination)
-    osc.start()
-    osc.stop(audio.currentTime + duracao)
-  } catch {}
-}

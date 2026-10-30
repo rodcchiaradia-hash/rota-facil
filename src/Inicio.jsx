@@ -1,11 +1,15 @@
 import Logo from './Logo.jsx'
 import Instalar from './Instalar.jsx'
 import { lerPacotes, lerEsperado } from './pacotes.js'
+import { lerRota } from './rota.js'
 
 export default function Inicio({ usuario, onAbrir, onSair }) {
   const pacotes = lerPacotes(usuario.id)
   const total = pacotes.length
   const esperado = lerEsperado(usuario.id)
+  const rota = lerRota(usuario.id)
+  const comEndereco = pacotes.filter((p) => p.endereco).length
+  const carregado = rota && rota.paradas.length > 0 && rota.carregados.length === rota.paradas.length
   const conferido = esperado > 0 && esperado === total && pacotes.every((p) => p.endereco)
 
   return (
@@ -37,10 +41,23 @@ export default function Inicio({ usuario, onAbrir, onSair }) {
         <span className="seta">›</span>
       </button>
 
+      <button className="cartao passo clicavel" onClick={() => onAbrir('rota')} disabled={!comEndereco}>
+        <span className={`numero ${carregado ? 'feito' : ''}`}>3</span>
+        <div>
+          <h2>Rota e separação</h2>
+          <p>Melhor ordem, mapa, bags e carregamento.</p>
+          {rota && (
+            <p className={carregado ? 'contagem-pequena' : 'contagem-alerta'}>
+              {rota.paradas.length} paradas · {(rota.distancia / 1000).toFixed(1)} km · {rota.carregados.length} carregados
+            </p>
+          )}
+        </div>
+        <span className="seta">›</span>
+      </button>
+
       <section className="em-breve">
         <h3>Em breve</h3>
-        <ol start={3}>
-          <li>Rota e separação</li>
+        <ol start={4}>
           <li>Em rota, com mapa</li>
           <li>Registro da entrega</li>
         </ol>

@@ -166,3 +166,41 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 .resultado.sobra { background: #FFF7E0; border: 2px solid var(--amarelo); color: #6B4A00; }
 .lista-simples { margin: 0; padding-left: 20px; font-family: ui-monospace, monospace; font-size: 14px; }
 .centro { text-align: center; }
+
+.opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.opcoes button {
+  flex: 1 1 auto; border: 1px solid var(--borda); background: #fff; border-radius: 10px;
+  padding: 10px 12px; font-weight: 600; color: var(--marinho);
+}
+.opcoes button.ativa { background: var(--marinho); color: #fff; border-color: var(--marinho); }
+.link { background: none; border: 0; color: var(--azul); font-weight: 600; padding: 0; }
+
+.resumo-rota { display: flex; justify-content: space-around; text-align: center; }
+.resumo-rota > div { display: flex; flex-direction: column; color: var(--suave); font-size: 13px; }
+.resumo-rota .numero-grande { font-size: 32px; }
+
+.mapa { height: 60dvh; min-height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid var(--borda); z-index: 0; }
+.pino {
+  width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  background: var(--marinho); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 12px;
+}
+.pino span { transform: rotate(45deg); line-height: 1; }
+.pino.partida { background: var(--verde); }
+.pino.destino { background: var(--vermelho); }
+
+.paradas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.paradas li { display: flex; gap: 10px; align-items: center; background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 10px 12px; }
+.paradas li.ponta { background: none; border-style: dashed; color: var(--suave); font-weight: 600; }
+.paradas .numero { width: 30px; height: 30px; font-size: 13px; }
+.lista-bags { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lista-bags li { background: var(--fundo); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; }
+.lista-bags span { color: var(--suave); font-size: 13px; }
+
+.etiqueta-parada { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--marinho); color: #fff; border-radius: 16px; padding: 16px; text-align: center; }
+.etiqueta-parada.repetido { background: #6B4A00; }
+.etiqueta-parada div { display: flex; flex-direction: column; }
+.etiqueta-parada span { font-size: 13px; text-transform: uppercase; opacity: .8; }
+.etiqueta-parada strong { font-size: 56px; line-height: 1; }
+.etiqueta-parada p { grid-column: 1 / -1; margin: 0; font-size: 14px; opacity: .9; }
+.marcar { width: 26px; height: 26px; }

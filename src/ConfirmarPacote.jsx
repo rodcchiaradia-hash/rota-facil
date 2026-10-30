@@ -67,7 +67,7 @@ export default function ConfirmarPacote({ codigo = '', comecarPelaFoto = true, o
 
   function salvar(e) {
     e.preventDefault()
-    onSalvar({ codigo, endereco: completo ? endereco : '' })
+    onSalvar({ codigo, endereco: completo ? endereco : '', campos: completo ? campos : null })
   }
 
   const cabecalho = codigo && (
