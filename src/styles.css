@@ -127,3 +127,15 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 .conteudo { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .endereco { font-size: 14px; white-space: pre-line; }
 .linha-dupla .numero-casa { flex: 0 0 34%; }
+
+.lido { display: flex; flex-direction: column; gap: 2px; background: #E8EEF8; border-radius: 12px; padding: 10px 12px; }
+.lido span, .conferir span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--suave); }
+.lido strong { font-family: ui-monospace, monospace; word-break: break-all; }
+.conferir { border: 2px dashed var(--borda); border-radius: 12px; padding: 12px; }
+.conferir p { margin: 4px 0 0; font-size: 17px; font-weight: 700; color: var(--suave); }
+.conferir.ok { border: 2px solid var(--verde); background: #EFFAF3; }
+.conferir.ok p { color: var(--texto); }
+.texto-lido summary { color: var(--azul); font-weight: 600; font-size: 14px; }
+.texto-lido pre { white-space: pre-wrap; font-size: 13px; background: var(--fundo); padding: 10px; border-radius: 8px; margin: 8px 0 0; }
+.sem-endereco { color: var(--amarelo); font-size: 13px; font-weight: 700; }
+.completar { color: #9A6B00; padding: 2px 0; text-align: left; font-size: 14px; }

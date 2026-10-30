@@ -20,7 +20,7 @@ export default function Camera({ onLeu, onErro }) {
         {
           fps: 10,
           // Área de leitura larga, boa para código de barras e QR.
-          qrbox: (w, h) => ({ width: Math.floor(w * 0.85), height: Math.floor(Math.min(h * 0.6, w * 0.6)) }),
+          qrbox: (w, h) => ({ width: Math.max(50, Math.floor(w * 0.85)), height: Math.max(50, Math.floor(Math.min(h * 0.6, w * 0.6))) }),
         },
         (codigo) => onLeuRef.current(codigo),
         () => {},

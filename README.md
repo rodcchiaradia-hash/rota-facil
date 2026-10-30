@@ -9,10 +9,13 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
 
 - App instalável no celular (ícone na tela inicial, abre em tela cheia).
 - Login por e-mail e senha (criar conta, entrar, recuperar senha).
-- Passo 1, três jeitos de adicionar pacote:
-  - **QR / Barras:** câmera ao vivo lendo QR Code e código de barras, com bipe/vibração e aviso de repetido.
+- Passo 1, três jeitos de adicionar pacote. Em todos, antes de salvar aparece a **conferência**:
+  o endereço completo em destaque e os campos (CEP, rua, número, complemento, bairro, cidade) para corrigir.
+  - **QR / Barras:** câmera ao vivo lendo QR Code e código de barras, com aviso de repetido. O código não traz
+    o endereço, então em seguida a pessoa fotografa ou digita o CEP. Dá para salvar só o código e completar depois.
   - **Foto do endereço:** tira foto da etiqueta e lê o texto no próprio celular (Tesseract.js, português);
-    a pessoa confere e corrige antes de salvar. Os arquivos do leitor são baixados no primeiro uso.
+    o app separa CEP, rua, número e complemento e busca bairro e cidade pelo CEP. Os arquivos do leitor
+    são baixados no primeiro uso.
   - **Digitar:** começa pelo CEP, que preenche rua, bairro e cidade (ViaCEP, com BrasilAPI de reserva);
     o entregador só digita número e complemento.
 
