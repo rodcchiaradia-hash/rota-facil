@@ -70,7 +70,7 @@ input:focus { outline: 2px solid var(--azul); border-color: transparent; }
 
 .em-breve { color: var(--suave); }
 .em-breve h3 { margin: 8px 0 4px; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
-.em-breve ol { margin: 0; padding-left: 22px; line-height: 1.8; }
+.em-breve ol, .em-breve ul { margin: 0; padding-left: 22px; line-height: 1.8; }
 .instalar { padding: 14px; }
 .dica { margin: 0; font-size: 14px; color: var(--suave); }
 
@@ -241,3 +241,10 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 .janela p { margin: 0; }
 @keyframes subir { from { transform: translateY(40px); opacity: 0; } }
 .lista li.carregado { background: #EFFAF3; border-color: var(--verde); }
+
+.assinatura { position: relative; border: 2px dashed var(--borda); border-radius: 12px; background: #fff; }
+.assinatura canvas { display: block; width: 100%; height: 160px; touch-action: none; }
+.assinatura-dica { position: absolute; inset: 0; display: grid; place-items: center; color: var(--suave); pointer-events: none; }
+.assinatura .botao-texto { position: absolute; top: 4px; right: 8px; }
+.assinatura-salva { width: 100%; border: 1px solid var(--borda); border-radius: 12px; background: #fff; }
+.feitas .link { align-self: flex-start; font-size: 13px; }

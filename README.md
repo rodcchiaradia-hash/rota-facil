@@ -9,6 +9,9 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
 
 - App instalável no celular (ícone na tela inicial, abre em tela cheia).
 - Login por e-mail e senha (criar conta, entrar, recuperar senha).
+- Passo 5, registro da entrega: ao tocar em "Entregue", foto do pacote entregue, quem recebeu (destinatário,
+  familiar, porteiro, vizinho, outro) com nome opcional e assinatura na tela. Precisa de foto ou assinatura.
+  Fotos e assinaturas ficam no IndexedDB do celular; o comprovante aparece em "Já feitas".
 - Passo 4, em rota: pacote da vez (parada, bag, distância), botões para navegar no Google Maps ou Waze,
   "Entregue", problemas (ausente, endereço errado, recusado), entrega fora de ordem pela lista ou
   escaneando o pacote, contador entregues/faltam/total (o total nunca diminui), mapa só com o que falta e

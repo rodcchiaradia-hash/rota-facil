@@ -60,7 +60,7 @@ export default function Inicio({ usuario, onAbrir, onSair }) {
         <span className={`numero ${rota && feitas === rota.paradas.length && feitas ? 'feito' : ''}`}>4</span>
         <div>
           <h2>Em rota</h2>
-          <p>Pacote da vez, mapa e entregas.</p>
+          <p>Pacote da vez, mapa e registro da entrega (foto e assinatura).</p>
           {rota && feitas > 0 && <p className="contagem-pequena">{feitas} de {rota.paradas.length} feitas</p>}
         </div>
         <span className="seta">›</span>
@@ -68,9 +68,10 @@ export default function Inicio({ usuario, onAbrir, onSair }) {
 
       <section className="em-breve">
         <h3>Em breve</h3>
-        <ol start={5}>
-          <li>Registro da entrega</li>
-        </ol>
+        <ul>
+          <li>Cadastro completo e login de verdade</li>
+          <li>Resultados do dia e financeiro</li>
+        </ul>
       </section>
 
       <Instalar />

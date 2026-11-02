@@ -4,6 +4,8 @@ import Camera from './Camera.jsx'
 import { lerRota, salvarRota, lerCasa, bagDaParada } from './rota.js'
 import { localizar, otimizarRota } from './geo.js'
 import { bipe } from './som.js'
+import RegistroEntrega from './RegistroEntrega.jsx'
+import { guardarComprovante, lerComprovante, apagarComprovante } from './comprovantes.js'
 
 const PROBLEMAS = {
   ausente: 'Destinatário ausente',
@@ -25,6 +27,8 @@ export default function EmRota({ usuario, onVoltar }) {
   const [escaneando, setEscaneando] = useState(false)
   const [confirmarForaDeOrdem, setConfirmarForaDeOrdem] = useState(null)
   const [trocandoDestino, setTrocandoDestino] = useState(false)
+  const [registrandoDe, setRegistrandoDe] = useState(null)
+  const [vendoComprovante, setVendoComprovante] = useState(null)
   const [aviso, setAviso] = useState('')
   const posicaoRef = useRef(null)
   const alertados = useRef(new Set())
@@ -92,9 +96,10 @@ export default function EmRota({ usuario, onVoltar }) {
     } catch {}
   }
 
-  function registrar(parada, status) {
+  function registrar(parada, status, extra = {}) {
     const foraDeOrdem = parada.id !== atual?.id
-    const nova = { ...rota, entregas: { ...entregas, [parada.id]: { status, quando: Date.now(), foraDeOrdem } } }
+    const registro = { status, quando: Date.now(), foraDeOrdem, local: posicaoRef.current, ...extra }
+    const nova = { ...rota, entregas: { ...entregas, [parada.id]: registro } }
     setRota(nova)
     setProblemaDe(null)
     setConfirmarForaDeOrdem(null)
@@ -102,7 +107,22 @@ export default function EmRota({ usuario, onVoltar }) {
     recalcular(nova)
   }
 
+  async function confirmarEntrega(parada, { foto, assinatura, recebedor }) {
+    const base = chaveComprovante(rota, parada)
+    try {
+      if (foto) await guardarComprovante(`${base}:foto`, foto)
+      if (assinatura) await guardarComprovante(`${base}:assinatura`, assinatura)
+    } catch {
+      setAviso('Não foi possível guardar a foto/assinatura neste celular. A entrega foi marcada mesmo assim.')
+    }
+    setRegistrandoDe(null)
+    registrar(parada, 'entregue', { recebedor, temFoto: !!foto, temAssinatura: !!assinatura })
+  }
+
   function desfazer(parada) {
+    const base = chaveComprovante(rota, parada)
+    apagarComprovante(`${base}:foto`).catch(() => {})
+    apagarComprovante(`${base}:assinatura`).catch(() => {})
     const { [parada.id]: _, ...resto } = entregas
     const nova = { ...rota, entregas: resto }
     setRota(nova)
@@ -117,7 +137,7 @@ export default function EmRota({ usuario, onVoltar }) {
       const jaFeita = feitas.find((p) => p.codigo === codigo.trim())
       return setAviso(jaFeita ? `Este pacote já foi marcado (parada ${jaFeita.numero}).` : 'Este pacote não está na rota de hoje.')
     }
-    if (parada.id === atual.id) registrar(parada, 'entregue')
+    if (parada.id === atual.id) setRegistrandoDe(parada)
     else setConfirmarForaDeOrdem(parada)
   }
 
@@ -188,7 +208,7 @@ export default function EmRota({ usuario, onVoltar }) {
                 <a className="botao secundario" href={`https://www.google.com/maps/dir/?api=1&destination=${atual.lat},${atual.lon}&travelmode=driving`} target="_blank" rel="noreferrer">Google Maps</a>
                 <a className="botao secundario" href={`https://waze.com/ul?ll=${atual.lat},${atual.lon}&navigate=yes`} target="_blank" rel="noreferrer">Waze</a>
               </div>
-              <button className="botao verde grande" onClick={() => registrar(atual, 'entregue')}>✓ Entregue</button>
+              <button className="botao verde grande" onClick={() => setRegistrandoDe(atual)}>✓ Entregue</button>
               <button className="botao-texto perigo" onClick={() => setProblemaDe(atual)}>Teve um problema</button>
             </section>
           )}
@@ -204,7 +224,7 @@ export default function EmRota({ usuario, onVoltar }) {
                     <span className="endereco">{p.endereco}</span>
                     <span className="dica">Bag {bagDaParada(p.numero, rota.tamanhoBag)}</span>
                   </span>
-                  <button className="botao-texto" onClick={() => (p.id === atual.id ? registrar(p, 'entregue') : setConfirmarForaDeOrdem(p))}>Entregar</button>
+                  <button className="botao-texto" onClick={() => (p.id === atual.id ? setRegistrandoDe(p) : setConfirmarForaDeOrdem(p))}>Entregar</button>
                 </li>
               ))}
             </ol>
@@ -235,6 +255,15 @@ export default function EmRota({ usuario, onVoltar }) {
                     <span className={e.status === 'entregue' ? 'status-ok' : 'status-problema'}>
                       {e.status === 'entregue' ? '✓ Entregue' : `⚠ ${PROBLEMAS[e.status]}`}{e.foraDeOrdem ? ' · fora de ordem' : ''}
                     </span>
+                    {e.recebedor && (
+                      <span className="dica">
+                        {e.recebedor.nome ? `${e.recebedor.nome} (${e.recebedor.tipo.toLowerCase()})` : e.recebedor.tipo}
+                        {e.temFoto ? ' · 📷' : ''}{e.temAssinatura ? ' · ✍' : ''}
+                      </span>
+                    )}
+                    {(e.temFoto || e.temAssinatura) && (
+                      <button className="link" onClick={() => setVendoComprovante(p)}>Ver comprovante</button>
+                    )}
                   </span>
                   <button className="botao-texto" onClick={() => desfazer(p)}>Desfazer</button>
                 </li>
@@ -255,7 +284,7 @@ export default function EmRota({ usuario, onVoltar }) {
       {confirmarForaDeOrdem && (
         <Janela titulo={`Parada ${confirmarForaDeOrdem.numero} (fora de ordem)`} onFechar={() => setConfirmarForaDeOrdem(null)}>
           <p>{confirmarForaDeOrdem.endereco}</p>
-          <button className="botao verde" onClick={() => registrar(confirmarForaDeOrdem, 'entregue')}>✓ Marcar como entregue</button>
+          <button className="botao verde" onClick={() => { setRegistrandoDe(confirmarForaDeOrdem); setConfirmarForaDeOrdem(null) }}>✓ Entregar este</button>
           <button className="botao-texto perigo" onClick={() => { setProblemaDe(confirmarForaDeOrdem); setConfirmarForaDeOrdem(null) }}>Teve um problema</button>
         </Janela>
       )}
@@ -266,12 +295,50 @@ export default function EmRota({ usuario, onVoltar }) {
         </Janela>
       )}
 
+      {registrandoDe && (
+        <Janela titulo="Registrar entrega" onFechar={() => setRegistrandoDe(null)}>
+          <RegistroEntrega parada={registrandoDe} onConfirmar={(dados) => confirmarEntrega(registrandoDe, dados)} />
+        </Janela>
+      )}
+
+      {vendoComprovante && (
+        <Janela titulo={`Comprovante · parada ${vendoComprovante.numero}`} onFechar={() => setVendoComprovante(null)}>
+          <Comprovante base={chaveComprovante(rota, vendoComprovante)} registro={entregas[vendoComprovante.id]} parada={vendoComprovante} />
+        </Janela>
+      )}
+
       {trocandoDestino && (
         <Janela titulo="Onde você termina o dia?" onFechar={() => setTrocandoDestino(false)}>
           <TrocarDestino temCasa={!!lerCasa(usuario.id)} onEscolher={trocarDestino} />
         </Janela>
       )}
     </main>
+  )
+}
+
+const chaveComprovante = (rota, parada) => `${rota.criadaEm}:${parada.id}`
+
+function Comprovante({ base, registro, parada }) {
+  const [imagens, setImagens] = useState({})
+  useEffect(() => {
+    const urls = []
+    Promise.all(['foto', 'assinatura'].map((tipo) => lerComprovante(`${base}:${tipo}`).catch(() => null)))
+      .then(([foto, assinatura]) => {
+        const u = (b) => { if (!b) return null; const url = URL.createObjectURL(b); urls.push(url); return url }
+        setImagens({ foto: u(foto), assinatura: u(assinatura) })
+      })
+    return () => urls.forEach((u) => URL.revokeObjectURL(u))
+  }, [base])
+  return (
+    <>
+      <p>{parada.endereco}</p>
+      <p className="dica">
+        {new Date(registro.quando).toLocaleString('pt-BR')}
+        {registro.recebedor ? ` · ${registro.recebedor.nome || ''} ${registro.recebedor.nome ? '(' + registro.recebedor.tipo.toLowerCase() + ')' : registro.recebedor.tipo}` : ''}
+      </p>
+      {imagens.foto && <img className="previa" src={imagens.foto} alt="Foto da entrega" />}
+      {imagens.assinatura && <img className="assinatura-salva" src={imagens.assinatura} alt="Assinatura" />}
+    </>
   )
 }
 
