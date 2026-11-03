@@ -8,7 +8,11 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
 ## O que já tem
 
 - App instalável no celular (ícone na tela inicial, abre em tela cheia).
-- Login por e-mail e senha (criar conta, entrar, recuperar senha).
+- Cadastro em etapas: dados pessoais (nome, CPF validado, nascimento 18+, celular), e-mail e senha com
+  aceite dos termos e da política de privacidade (texto provisório, registra versão e data do aceite),
+  empresas atendidas e veículo (tipo, placa, consumo km/l). "Meu cadastro" para editar.
+- Login por e-mail e senha e recuperação de senha (com Supabase). No modo de teste as contas ficam no
+  celular, com a senha guardada como hash.
 - Passo 5, registro da entrega: ao tocar em "Entregue", foto do pacote entregue, quem recebeu (destinatário,
   familiar, porteiro, vizinho, outro) com nome opcional e assinatura na tela. Precisa de foto ou assinatura.
   Fotos e assinaturas ficam no IndexedDB do celular; o comprovante aparece em "Já feitas".

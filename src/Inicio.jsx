@@ -3,7 +3,7 @@ import Instalar from './Instalar.jsx'
 import { lerPacotes, lerEsperado } from './pacotes.js'
 import { lerRota } from './rota.js'
 
-export default function Inicio({ usuario, onAbrir, onSair }) {
+export default function Inicio({ usuario, perfil, onAbrir, onSair }) {
   const pacotes = lerPacotes(usuario.id)
   const total = pacotes.length
   const esperado = lerEsperado(usuario.id)
@@ -17,9 +17,12 @@ export default function Inicio({ usuario, onAbrir, onSair }) {
     <main className="tela">
       <header className="topo">
         <Logo tamanho={36} />
-        <button className="botao-texto" onClick={onSair}>Sair</button>
+        <div>
+          <button className="botao-texto" onClick={() => onAbrir('cadastro')}>Meu cadastro</button>
+          <button className="botao-texto" onClick={onSair}>Sair</button>
+        </div>
       </header>
-      <p className="ola">Olá, {usuario.email}</p>
+      <p className="ola">Olá, {perfil.nome.split(' ')[0]}!</p>
 
       <button className="cartao passo clicavel" onClick={() => onAbrir('escanear')}>
         <span className={`numero ${total ? 'feito' : ''}`}>1</span>

@@ -248,3 +248,16 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 .assinatura .botao-texto { position: absolute; top: 4px; right: 8px; }
 .assinatura-salva { width: 100%; border: 1px solid var(--borda); border-radius: 12px; background: #fff; }
 .feitas .link { align-self: flex-start; font-size: 13px; }
+
+.etapas { display: flex; gap: 6px; }
+.etapas span { flex: 1; height: 6px; border-radius: 3px; background: var(--borda); }
+.etapas span.feita { background: var(--marinho); }
+.aceite { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+.aceite label { display: inline; font-weight: 400; }
+.aceite input { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+.aceite .link { font-size: inherit; text-align: left; text-decoration: underline; }
+.criar-conta { flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 20px; }
+.criar-conta p { margin: 0; color: var(--suave); }
+.criar-conta .botao { width: auto; }
+.termos p { font-size: 14px; line-height: 1.5; }
+.topo > div { display: flex; gap: 8px; }

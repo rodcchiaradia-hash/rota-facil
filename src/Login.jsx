@@ -1,33 +1,26 @@
 import { useState } from 'react'
-import { entrar, criarConta, recuperarSenha, modoTeste } from './auth.js'
+import { entrar, recuperarSenha, modoTeste } from './auth.js'
 import Logo from './Logo.jsx'
 
-export default function Login({ onEntrou }) {
-  const [modo, setModo] = useState('entrar')
+export default function Login({ onEntrou, onCriarConta, avisoInicial = '' }) {
+  const [recuperando, setRecuperando] = useState(false)
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
-  const [aviso, setAviso] = useState('')
+  const [aviso, setAviso] = useState(avisoInicial)
   const [enviando, setEnviando] = useState(false)
 
   async function enviar(e) {
     e.preventDefault()
     setErro(''); setAviso('')
-    if (modo !== 'recuperar' && senha.length < 6) return setErro('A senha precisa ter pelo menos 6 caracteres.')
     setEnviando(true)
     try {
-      if (modo === 'entrar') {
-        onEntrou(await entrar(email.trim(), senha))
-      } else if (modo === 'criar') {
-        const { usuario, precisaConfirmar } = await criarConta(email.trim(), senha)
-        if (precisaConfirmar) {
-          setAviso('Conta criada! Abra seu e-mail e clique no link de confirmação. Depois volte e entre.')
-          setModo('entrar')
-        } else onEntrou(usuario)
-      } else {
+      if (recuperando) {
         await recuperarSenha(email.trim())
         setAviso('Enviamos um link para seu e-mail para criar uma nova senha.')
-        setModo('entrar')
+        setRecuperando(false)
+      } else {
+        onEntrou(await entrar(email.trim(), senha))
       }
     } catch (err) {
       setErro(err.message || 'Não foi possível continuar. Tente de novo.')
@@ -36,41 +29,42 @@ export default function Login({ onEntrou }) {
     }
   }
 
-  const titulos = { entrar: 'Entrar', criar: 'Criar conta', recuperar: 'Recuperar senha' }
-
   return (
     <main className="tela tela-login">
       <Logo tamanho={72} />
       <form className="cartao" onSubmit={enviar}>
-        <h1>{titulos[modo]}</h1>
+        <h1>{recuperando ? 'Recuperar senha' : 'Entrar'}</h1>
         <label>
           E-mail
           <input type="email" inputMode="email" autoComplete="email" required
             value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
         </label>
-        {modo !== 'recuperar' && (
+        {!recuperando && (
           <label>
             Senha
-            <input type="password" autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} required
-              value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="mínimo 6 caracteres" />
+            <input type="password" autoComplete="current-password" required
+              value={senha} onChange={(e) => setSenha(e.target.value)} />
           </label>
         )}
         {erro && <p className="erro">{erro}</p>}
         {aviso && <p className="aviso">{aviso}</p>}
         <button className="botao principal" disabled={enviando}>
-          {enviando ? 'Aguarde…' : modo === 'recuperar' ? 'Enviar link' : titulos[modo]}
+          {enviando ? 'Aguarde…' : recuperando ? 'Enviar link' : 'Entrar'}
         </button>
         <div className="links">
-          {modo === 'entrar' ? (
-            <>
-              <button type="button" onClick={() => setModo('criar')}>Criar conta</button>
-              {!modoTeste && <button type="button" onClick={() => setModo('recuperar')}>Esqueci a senha</button>}
-            </>
+          {recuperando ? (
+            <button type="button" onClick={() => setRecuperando(false)}>Voltar</button>
           ) : (
-            <button type="button" onClick={() => setModo('entrar')}>Já tenho conta</button>
+            <button type="button" onClick={() => (modoTeste
+              ? setAviso('No modo de teste a recuperação de senha ainda não funciona. Crie outra conta para testar.')
+              : setRecuperando(true))}>Esqueci a senha</button>
           )}
         </div>
       </form>
+      <div className="cartao criar-conta">
+        <p>Ainda não tem conta?</p>
+        <button className="botao secundario" onClick={onCriarConta}>Criar conta</button>
+      </div>
     </main>
   )
 }
