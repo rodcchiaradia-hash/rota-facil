@@ -19,7 +19,7 @@ export default function EmRota({ usuario, onVoltar }) {
   const [rota, setRota] = useState(() => {
     const r = lerRota(usuario.id)
     // Rotas montadas antes desta versão não tinham o número fixo da parada.
-    return { ...r, entregas: r.entregas || {}, paradas: r.paradas.map((p, i) => ({ ...p, numero: p.numero ?? i + 1 })) }
+    return { ...r, iniciadaEm: r.iniciadaEm || Date.now(), entregas: r.entregas || {}, paradas: r.paradas.map((p, i) => ({ ...p, numero: p.numero ?? i + 1 })) }
   })
   const [posicao, setPosicao] = useState(null)
   const [ver, setVer] = useState('vez')
@@ -51,6 +51,13 @@ export default function EmRota({ usuario, onVoltar }) {
         const nova = { lat: p.coords.latitude, lon: p.coords.longitude }
         posicaoRef.current = nova
         setPosicao(nova)
+        // Guarda a trilha (um ponto a cada 20 s) para calcular km rodados e tempo parado.
+        setRota((r) => {
+          const trilha = r.trilha || []
+          const ultimo = trilha.at(-1)
+          if (ultimo && Date.now() - ultimo.t < 20000) return r
+          return { ...r, trilha: [...trilha, { ...nova, t: Date.now() }].slice(-3000) }
+        })
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000 },

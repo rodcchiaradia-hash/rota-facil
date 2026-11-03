@@ -2,8 +2,11 @@ import Logo from './Logo.jsx'
 import Instalar from './Instalar.jsx'
 import { lerPacotes, lerEsperado } from './pacotes.js'
 import { lerRota } from './rota.js'
+import { lerDia } from './dia.js'
+import { formatarReais } from './formato.js'
 
-export default function Inicio({ usuario, perfil, onAbrir, onSair }) {
+export default function Inicio({ usuario, perfil, ajudante, onAbrir, onSair, onEncerrar, onModoAjudante }) {
+  const dia = lerDia(usuario.id)
   const pacotes = lerPacotes(usuario.id)
   const total = pacotes.length
   const esperado = lerEsperado(usuario.id)
@@ -17,12 +20,22 @@ export default function Inicio({ usuario, perfil, onAbrir, onSair }) {
     <main className="tela">
       <header className="topo">
         <Logo tamanho={36} />
-        <div>
-          <button className="botao-texto" onClick={() => onAbrir('cadastro')}>Meu cadastro</button>
-          <button className="botao-texto" onClick={onSair}>Sair</button>
-        </div>
+        {ajudante ? <span className="selo-ajudante">Modo ajudante</span>
+          : <button className="botao-texto" onClick={onSair}>Sair</button>}
       </header>
-      <p className="ola">Olá, {perfil.nome.split(' ')[0]}!</p>
+      <p className="ola">Olá, {ajudante ? 'ajudante' : perfil.nome.split(' ')[0]}!</p>
+
+      {!dia ? (
+        <button className="botao principal grande" onClick={() => onAbrir('iniciodia')}>☀ Começar o dia</button>
+      ) : (
+        <section className="cartao dia-atual">
+          <span className="dica">Hoje</span>
+          <strong>{dia.empresa} · Rota {dia.rotaNumero}</strong>
+          {!ajudante && dia.valor ? <span className="dica">{formatarReais(dia.valor)}</span> : null}
+        </section>
+      )}
+
+      {dia && <>
 
       <button className="cartao passo clicavel" onClick={() => onAbrir('escanear')}>
         <span className={`numero ${total ? 'feito' : ''}`}>1</span>
@@ -69,13 +82,16 @@ export default function Inicio({ usuario, perfil, onAbrir, onSair }) {
         <span className="seta">›</span>
       </button>
 
-      <section className="em-breve">
-        <h3>Em breve</h3>
-        <ul>
-          <li>Cadastro completo e login de verdade</li>
-          <li>Resultados do dia e financeiro</li>
-        </ul>
-      </section>
+      {!ajudante && <button className="botao-texto perigo centro" onClick={onEncerrar}>Encerrar o dia</button>}
+      </>}
+
+      <nav className="menu">
+        <button onClick={() => onAbrir('dashboard')}>📊<span>Resultados</span></button>
+        {!ajudante && <button onClick={() => onAbrir('financeiro')}>💰<span>Financeiro</span></button>}
+        {!ajudante && <button onClick={() => onAbrir('minhasrotas')}>🗺<span>Minhas rotas</span></button>}
+        {!ajudante && <button onClick={() => onAbrir('cadastro')}>👤<span>Meu cadastro</span></button>}
+        <button onClick={onModoAjudante}>🤝<span>{ajudante ? 'Sair do modo ajudante' : 'Modo ajudante'}</span></button>
+      </nav>
 
       <Instalar />
     </main>

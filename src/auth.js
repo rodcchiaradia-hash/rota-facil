@@ -103,3 +103,13 @@ function traduzir(msg) {
   if (/rate limit/i.test(msg)) return 'Muitas tentativas. Espere alguns minutos.'
   return msg
 }
+
+// Confere a senha do dono (para sair do modo ajudante) sem trocar quem está logado.
+export async function conferirSenha(email, senha) {
+  if (supabase) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+    return !error
+  }
+  const conta = lerContas()[email.toLowerCase()]
+  return !!conta && conta.senha === (await hash(senha))
+}

@@ -8,6 +8,16 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
 ## O que já tem
 
 - App instalável no celular (ícone na tela inicial, abre em tela cheia).
+- Começar o dia: escolhe a rota do dia entre as "Minhas rotas" salvas (empresa, número, região, valor,
+  prazo de pagamento e um campo de risco que só o entregador vê) ou cadastra outra na hora.
+- Encerrar o dia: guarda pacotes, entregas e o caminho percorrido (GPS) no histórico e mostra o resumo
+  (entregues, problemas, km planejado e percorrido, tempo total, tempo médio por entrega, tempo parado).
+- Resultados: período (hoje, 7, 15, 30 dias, tudo) e filtro por empresa; entregas, km, litros e gasto de
+  combustível (preço do litro editável); lista dos dias com o resumo de cada um.
+- Financeiro: semana, quinzena e mês; ganhos, média por dia, combustível e o que sobra; "A receber" com a
+  data de vencimento de cada rota e o botão "Recebi"; valor, prazo e pagamento editáveis por dia.
+- Modo ajudante: o ajudante usa os passos do dia, mas não vê financeiro, valores, minhas rotas nem cadastro.
+  Para sair do modo é preciso a senha do dono.
 - Cadastro em etapas: dados pessoais (nome, CPF validado, nascimento 18+, celular), e-mail e senha com
   aceite dos termos e da política de privacidade (texto provisório, registra versão e data do aceite),
   empresas atendidas e veículo (tipo, placa, consumo km/l). "Meu cadastro" para editar.
