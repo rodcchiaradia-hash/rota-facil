@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Logo from './Logo.jsx'
+import { problemaNaSenha, sugestaoDeEmail } from './auth.js'
 
 export const EMPRESAS = ['Mercado Livre', 'Shopee', 'Amazon', 'Shein', 'Correios', 'J&T Express', 'Loggi', 'Jadlog']
 const VEICULOS = ['Moto', 'Carro', 'Utilitário / van', 'Bicicleta']
@@ -23,6 +24,7 @@ export default function Cadastro({ modo = 'novo', perfilInicial, onConcluir, onC
   const [verTermos, setVerTermos] = useState(false)
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [avisouEmail, setAvisouEmail] = useState(false)
 
   const mudar = (campo, formatar = (v) => v) => (e) => {
     setErro('')
@@ -39,7 +41,9 @@ export default function Cadastro({ modo = 'novo', perfilInicial, onConcluir, onC
     }
     if (atual === 'acesso') {
       if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'Digite um e-mail válido.'
-      if (senha.length < 8) return 'A senha precisa ter pelo menos 8 caracteres.'
+      const sugestao = sugestaoDeEmail(email)
+      if (sugestao && !avisouEmail) { setAvisouEmail(true); return `Confira o e-mail: você quis dizer ${sugestao}? Ele é usado para recuperar a senha. Se estiver certo, toque em Continuar de novo.` }
+      if (problemaNaSenha(senha)) return problemaNaSenha(senha)
       if (senha !== senha2) return 'As duas senhas não são iguais.'
       if (!aceite) return 'Para continuar, aceite os termos de uso e a política de privacidade.'
     }
@@ -113,10 +117,11 @@ export default function Cadastro({ modo = 'novo', perfilInicial, onConcluir, onC
         {atual === 'acesso' && (
           <>
             <label>E-mail
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" />
+              <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setAvisouEmail(false) }} autoComplete="email" inputMode="email" />
             </label>
+            <p className="dica">Use um e-mail que você acessa: é por ele que você recupera a senha.</p>
             <label>Senha
-              <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" placeholder="mínimo 8 caracteres" />
+              <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" placeholder="8 ou mais, com letras e números" />
             </label>
             <label>Repita a senha
               <input type="password" value={senha2} onChange={(e) => setSenha2(e.target.value)} autoComplete="new-password" />

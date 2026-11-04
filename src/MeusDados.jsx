@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { apagarConta, conferirSenha, exportarDados, modoTeste } from './auth.js'
+import { apagarConta, conferirSenha, exportarDados, modoTeste, trocarSenha } from './auth.js'
+import NovaSenha from './NovaSenha.jsx'
 import { apagarTodosComprovantes, DIAS_GUARDADOS } from './comprovantes.js'
 
 // Direitos da LGPD: ver/baixar os dados e apagar tudo.
@@ -7,6 +8,8 @@ export default function MeusDados({ usuario, onApagou }) {
   const [apagando, setApagando] = useState(false)
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
+  const [trocando, setTrocando] = useState(false)
+  const [aviso, setAviso] = useState('')
 
   function baixar() {
     const blob = new Blob([JSON.stringify(exportarDados(usuario), null, 2)], { type: 'application/json' })
@@ -30,11 +33,21 @@ export default function MeusDados({ usuario, onApagou }) {
 
   return (
     <section className="cartao">
-      <h2>Seus dados e privacidade</h2>
+      <h2>Conta, senha e privacidade</h2>
       <p className="dica">
         Fotos e assinaturas das entregas ficam guardadas por {DIAS_GUARDADOS} dias e depois são apagadas sozinhas.
         {modoTeste ? ' Na fase de testes tudo fica só neste celular.' : ''}
       </p>
+      <p className="dica">E-mail da conta: <strong>{usuario.email}</strong></p>
+      {aviso && <p className="aviso">{aviso}</p>}
+      {trocando ? (
+        <NovaSenha pedirAtual onCancelar={() => setTrocando(false)} onSalvar={async (nova, atual) => {
+          await trocarSenha(usuario, atual, nova)
+          setTrocando(false); setAviso('Senha alterada.')
+        }} />
+      ) : (
+        <button type="button" className="botao secundario" onClick={() => { setAviso(''); setTrocando(true) }}>Trocar minha senha</button>
+      )}
       <button type="button" className="botao secundario" onClick={baixar}>Baixar uma cópia dos meus dados</button>
       {!apagando ? (
         <button type="button" className="botao-texto perigo" onClick={() => setApagando(true)}>Apagar minha conta e meus dados</button>

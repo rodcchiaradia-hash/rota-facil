@@ -3,6 +3,9 @@
 ## O que já está feito
 - Senhas das contas de teste guardadas com PBKDF2 (210 mil rodadas, sal aleatório). Hashes antigos são
   trocados no primeiro login. Com o Supabase, a senha nunca fica no celular.
+- Cadastro: CPF validado, 18+, celular com DDD, e-mail com aviso de erro de digitação (gmial, hotmal...),
+  senha com 8+ caracteres, letras e números, repetida. "Trocar minha senha" em Meu cadastro (pede a atual).
+- Esqueci a senha (com Supabase): e-mail com link; o link abre a tela "Criar nova senha".
 - Depois de 5 senhas erradas seguidas (login, sair do modo ajudante ou apagar a conta), espera de 1 minuto.
 - Modo ajudante: esconde financeiro, valores, Minhas rotas e cadastro; sair do modo e sair da conta exigem
   a senha do dono.

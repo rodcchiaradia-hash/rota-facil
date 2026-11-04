@@ -4,10 +4,14 @@ import { createClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// O link de "esqueci a senha" volta para o app com type=recovery no endereço. Guardado antes do Supabase limpar.
+export const veioDoLinkDeSenha = /type=recovery/.test(window.location.hash + window.location.search)
+
 export const supabase = url && key ? createClient(url, key) : null
 
 // Sem Supabase o app roda em "modo de teste": o login fica só neste aparelho.
 export const modoTeste = !supabase
+export const vindoDoLinkDeSenha = !!supabase && veioDoLinkDeSenha
 const CHAVE_TESTE = 'rf:usuario-teste'
 
 export async function usuarioAtual() {
@@ -21,7 +25,7 @@ export async function usuarioAtual() {
 
 export function aoMudarLogin(callback) {
   if (!supabase) return () => {}
-  const { data } = supabase.auth.onAuthStateChange((_evento, sessao) => callback(sessao?.user ?? null))
+  const { data } = supabase.auth.onAuthStateChange((evento, sessao) => callback(sessao?.user ?? null, evento))
   return () => data.subscription.unsubscribe()
 }
 
@@ -124,7 +128,7 @@ export async function salvarPerfil(usuario, perfil) {
 
 export async function recuperarSenha(email) {
   if (!supabase) throw new Error('Recuperação de senha funciona quando o servidor estiver ligado.')
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href })
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + import.meta.env.BASE_URL })
   if (error) throw new Error(traduzir(error.message))
 }
 
@@ -182,4 +186,34 @@ export function exportarDados(usuario) {
   if (supabase) dados.perfil = usuario.user_metadata?.perfil ?? null
   try { dados.enderecos = JSON.parse(localStorage.getItem('rf:enderecos')) } catch { /* nada */ }
   return dados
+}
+
+// Regra única de senha: 8+ caracteres, com letra e número.
+export function problemaNaSenha(senha) {
+  if (senha.length < 8) return 'A senha precisa ter pelo menos 8 caracteres.'
+  if (!/[a-zA-Z]/.test(senha) || !/\d/.test(senha)) return 'Use letras e números na senha.'
+  return ''
+}
+
+// Erros comuns de digitação no e-mail (o e-mail é o caminho para recuperar a senha).
+const DOMINIOS = { 'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmail.con': 'gmail.com', 'gamil.com': 'gmail.com', 'gmail.com.br': 'gmail.com',
+  'hotmal.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'outlok.com': 'outlook.com', 'yahoo.con': 'yahoo.com' }
+export function sugestaoDeEmail(email) {
+  const [nome, dominio] = email.trim().toLowerCase().split('@')
+  return dominio && DOMINIOS[dominio] ? `${nome}@${DOMINIOS[dominio]}` : ''
+}
+
+// Nova senha depois do link de recuperação (Supabase).
+export async function definirNovaSenha(senha) {
+  const { error } = await supabase.auth.updateUser({ password: senha })
+  if (error) throw new Error(traduzir(error.message))
+}
+
+// Trocar a senha estando logado (pede a senha atual).
+export async function trocarSenha(usuario, atual, nova) {
+  if (!(await conferirSenha(usuario.email, atual))) throw new Error('Senha atual incorreta.')
+  if (supabase) return definirNovaSenha(nova)
+  const contas = lerContas()
+  contas[usuario.email.toLowerCase()] = await protegerSenha(nova)
+  localStorage.setItem(CHAVE_CONTAS, JSON.stringify(contas))
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { usuarioAtual, aoMudarLogin, sair, modoTeste, criarConta, lerPerfil, salvarPerfil, conferirSenha } from './auth.js'
+import { usuarioAtual, aoMudarLogin, sair, modoTeste, criarConta, lerPerfil, salvarPerfil, conferirSenha, vindoDoLinkDeSenha, definirNovaSenha } from './auth.js'
+import NovaSenha from './NovaSenha.jsx'
 import Cadastro from './Cadastro.jsx'
 import Login from './Login.jsx'
 import Inicio from './Inicio.jsx'
@@ -27,10 +28,14 @@ export default function App() {
   const [ajudante, setAjudante] = useState(() => localStorage.getItem('rf:ajudante') === '1')
   const [pedindoSenha, setPedindoSenha] = useState(false)
   const [diaEncerrado, setDiaEncerrado] = useState(null)
+  const [novaSenha, setNovaSenha] = useState(vindoDoLinkDeSenha)
 
   useEffect(() => {
     usuarioAtual().then(setUsuario)
-    return aoMudarLogin(setUsuario)
+    return aoMudarLogin((u, evento) => {
+      setUsuario(u)
+      if (evento === 'PASSWORD_RECOVERY') setNovaSenha(true)
+    })
   }, [])
 
   if (usuario === undefined) return <div className="carregando">Carregando…</div>
@@ -66,7 +71,14 @@ export default function App() {
   const telaAtual = ajudante && SO_DONO.includes(tela) ? 'inicio' : tela
 
   let conteudo
-  if (!usuario) {
+  if (usuario && novaSenha) {
+    conteudo = <NovaSenha onSalvar={async (senha) => {
+      await definirNovaSenha(senha)
+      setNovaSenha(false)
+      window.history.replaceState(null, '', window.location.pathname)
+      alert('Senha alterada!')
+    }} />
+  } else if (!usuario) {
     conteudo = telaLogin === 'cadastro'
       ? <Cadastro modo="novo" onConcluir={cadastrar} onCancelar={() => setTelaLogin('entrar')} />
       : <Login onEntrou={setUsuario} onCriarConta={() => { setAvisoLogin(''); setTelaLogin('cadastro') }} avisoInicial={avisoLogin} key={avisoLogin} />
