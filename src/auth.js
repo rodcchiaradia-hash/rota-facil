@@ -28,9 +28,42 @@ export function aoMudarLogin(callback) {
 // No modo de teste as contas ficam neste celular, com a senha guardada só como hash.
 const CHAVE_CONTAS = 'rf:contas'
 const lerContas = () => JSON.parse(localStorage.getItem(CHAVE_CONTAS) || '{}')
-async function hash(texto) {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto))
-  return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('')
+const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
+async function hashAntigo(texto) {
+  return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto)))
+}
+// PBKDF2 com sal aleatório: muito mais difícil de descobrir a senha a partir do que fica guardado.
+async function derivar(senha, sal) {
+  const chave = await crypto.subtle.importKey('raw', new TextEncoder().encode(senha), 'PBKDF2', false, ['deriveBits'])
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode(sal), iterations: 210000 }, chave, 256)
+  return hex(bits)
+}
+async function protegerSenha(senha) {
+  const sal = hex(crypto.getRandomValues(new Uint8Array(16)))
+  return { sal, senha: await derivar(senha, sal) }
+}
+async function senhaConfere(conta, senha) {
+  if (!conta) return false
+  if (conta.sal) return conta.senha === (await derivar(senha, conta.sal))
+  return conta.senha === (await hashAntigo(senha))
+}
+
+// Depois de 5 senhas erradas seguidas, espera 1 minuto antes de tentar de novo.
+const CHAVE_TENTATIVAS = 'rf:tentativas'
+function bloqueadoAte() {
+  try { const t = JSON.parse(localStorage.getItem(CHAVE_TENTATIVAS)) || {}; return t.ate > Date.now() ? t.ate : 0 } catch { return 0 }
+}
+function registrarTentativa(ok) {
+  if (ok) return localStorage.removeItem(CHAVE_TENTATIVAS)
+  let t = {}
+  try { t = JSON.parse(localStorage.getItem(CHAVE_TENTATIVAS)) || {} } catch { /* vazio */ }
+  t.erros = (t.erros || 0) + 1
+  if (t.erros >= 5) { t.ate = Date.now() + 60000; t.erros = 0 }
+  localStorage.setItem(CHAVE_TENTATIVAS, JSON.stringify(t))
+}
+function conferirBloqueio() {
+  const ate = bloqueadoAte()
+  if (ate) throw new Error(`Muitas tentativas erradas. Espere ${Math.ceil((ate - Date.now()) / 1000)} segundos.`)
 }
 
 export async function entrar(email, senha) {
@@ -40,9 +73,14 @@ export async function entrar(email, senha) {
     if (error) throw new Error(traduzir(error.message))
     return data.user
   }
-  const conta = lerContas()[email]
+  conferirBloqueio()
+  const contas = lerContas()
+  const conta = contas[email]
   if (!conta) throw new Error('Não achamos conta com este e-mail. Toque em "Criar conta".')
-  if (conta.senha !== (await hash(senha))) throw new Error('E-mail ou senha incorretos.')
+  const ok = await senhaConfere(conta, senha)
+  registrarTentativa(ok)
+  if (!ok) throw new Error('E-mail ou senha incorretos.')
+  if (!conta.sal) { contas[email] = await protegerSenha(senha); localStorage.setItem(CHAVE_CONTAS, JSON.stringify(contas)) }
   const usuario = { id: email, email }
   localStorage.setItem(CHAVE_TESTE, JSON.stringify(usuario))
   return usuario
@@ -62,7 +100,7 @@ export async function criarConta(email, senha, perfil) {
   }
   const contas = lerContas()
   if (contas[email]) throw new Error('Este e-mail já tem conta. Use "Entrar".')
-  contas[email] = { senha: await hash(senha) }
+  contas[email] = await protegerSenha(senha)
   localStorage.setItem(CHAVE_CONTAS, JSON.stringify(contas))
   localStorage.setItem(`rf:perfil:${email}`, JSON.stringify(perfil))
   return { usuario: await entrar(email, senha), precisaConfirmar: false }
@@ -105,11 +143,43 @@ function traduzir(msg) {
 }
 
 // Confere a senha do dono (para sair do modo ajudante) sem trocar quem está logado.
+// Lança erro se estiver bloqueado por excesso de tentativas.
 export async function conferirSenha(email, senha) {
+  conferirBloqueio()
+  let ok
   if (supabase) {
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
-    return !error
+    ok = !error
+  } else {
+    ok = await senhaConfere(lerContas()[email.toLowerCase()], senha)
   }
-  const conta = lerContas()[email.toLowerCase()]
-  return !!conta && conta.senha === (await hash(senha))
+  registrarTentativa(ok)
+  return ok
+}
+
+// LGPD: apagar tudo o que o app guardou desta pessoa neste celular (e a conta, no modo de teste).
+export async function apagarConta(usuario) {
+  const u = usuario.id
+  for (const nome of ['pacotes', 'esperado', 'rota', 'casa', 'dia', 'historico', 'minhas-rotas', 'config', 'perfil']) {
+    localStorage.removeItem(`rf:${nome}:${u}`)
+  }
+  ;['rf:enderecos', 'rf:geocache', 'rf:ajudante', 'rf:tentativas'].forEach((k) => localStorage.removeItem(k))
+  if (!supabase) {
+    const contas = lerContas()
+    delete contas[usuario.email.toLowerCase()]
+    localStorage.setItem(CHAVE_CONTAS, JSON.stringify(contas))
+  }
+  await sair()
+}
+
+// LGPD: cópia dos dados guardados neste celular, em um arquivo.
+export function exportarDados(usuario) {
+  const u = usuario.id
+  const dados = { exportadoEm: new Date().toISOString(), email: usuario.email }
+  for (const nome of ['perfil', 'minhas-rotas', 'historico', 'dia', 'pacotes', 'rota', 'casa', 'config']) {
+    try { dados[nome] = JSON.parse(localStorage.getItem(`rf:${nome}:${u}`)) } catch { dados[nome] = null }
+  }
+  if (supabase) dados.perfil = usuario.user_metadata?.perfil ?? null
+  try { dados.enderecos = JSON.parse(localStorage.getItem('rf:enderecos')) } catch { /* nada */ }
+  return dados
 }

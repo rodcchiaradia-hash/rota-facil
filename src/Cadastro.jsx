@@ -12,7 +12,7 @@ const PERFIL_VAZIO = {
 }
 
 // Cadastro em etapas. "novo" inclui e-mail, senha e aceite dos termos; "editar" só os dados.
-export default function Cadastro({ modo = 'novo', perfilInicial, onConcluir, onCancelar }) {
+export default function Cadastro({ modo = 'novo', perfilInicial, onConcluir, onCancelar, rodape }) {
   const etapas = modo === 'novo' ? ['dados', 'acesso', 'empresas', 'veiculo'] : ['dados', 'empresas', 'veiculo']
   const [etapa, setEtapa] = useState(0)
   const [perfil, setPerfil] = useState({ ...PERFIL_VAZIO, ...perfilInicial })
@@ -175,6 +175,7 @@ export default function Cadastro({ modo = 'novo', perfilInicial, onConcluir, onC
           <button type="button" className="botao-texto" onClick={onCancelar}>Já tenho conta</button>
         )}
       </form>
+      {rodape}
 
       {verTermos && (
         <div className="fundo-janela" onClick={() => setVerTermos(false)}>
@@ -195,7 +196,8 @@ export function Termos() {
       <p><strong>Quais dados coletamos:</strong> nome, CPF, data de nascimento, celular, e-mail, empresas atendidas, veículo, endereços dos pacotes, fotos e assinaturas das entregas e sua localização enquanto o app está aberto durante a rota.</p>
       <p><strong>Para que usamos:</strong> identificar você, montar e acompanhar suas rotas, registrar as entregas e mostrar seus resultados e ganhos. Não vendemos seus dados.</p>
       <p><strong>Dados de terceiros:</strong> endereços, nomes e assinaturas de quem recebe são usados só para comprovar a entrega.</p>
-      <p><strong>Seus direitos (LGPD):</strong> você pode pedir para ver, corrigir ou apagar seus dados a qualquer momento.</p>
+      <p><strong>Por quanto tempo:</strong> fotos e assinaturas das entregas ficam guardadas por 90 dias e depois são apagadas.</p>
+      <p><strong>Seus direitos (LGPD):</strong> em "Meu cadastro" você pode corrigir seus dados, baixar uma cópia deles e apagar sua conta a qualquer momento.</p>
       <p><strong>Na fase de testes</strong> os dados ficam guardados no próprio celular.</p>
     </div>
   )

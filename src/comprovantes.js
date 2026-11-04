@@ -24,6 +24,23 @@ async function transacao(modo, fazer) {
 export const guardarComprovante = (chave, blob) => transacao('readwrite', (loja) => loja.put(blob, chave))
 export const lerComprovante = (chave) => transacao('readonly', (loja) => loja.get(chave))
 export const apagarComprovante = (chave) => transacao('readwrite', (loja) => loja.delete(chave))
+export const apagarTodosComprovantes = () => transacao('readwrite', (loja) => loja.clear())
+
+// Fotos e assinaturas ficam guardadas por 90 dias (prazo para resolver reclamações) e depois são apagadas.
+export const DIAS_GUARDADOS = 90
+export function limparComprovantesAntigos() {
+  const limite = Date.now() - DIAS_GUARDADOS * 24 * 3600 * 1000
+  return transacao('readwrite', (loja) => {
+    const cursor = loja.openKeyCursor()
+    cursor.onsuccess = () => {
+      const c = cursor.result
+      if (!c) return
+      const criada = Number(String(c.key).split(':')[0])
+      if (criada && criada < limite) loja.delete(c.key)
+      c.continue()
+    }
+  }).catch(() => {})
+}
 
 // Reduz a foto para ~1000px: suficiente como prova e leve para guardar e enviar depois.
 export async function comprimirFoto(arquivo) {

@@ -164,7 +164,7 @@ export default function EmRota({ usuario, onVoltar }) {
   }
 
   const pontos = useMemo(() => [
-    ...pendentes.map((p) => ({ ...p, texto: p.numero, classe: p.id === atual?.id ? 'atual' : '', popup: `<b>${p.numero}.</b> ${p.endereco}` })),
+    ...pendentes.map((p) => ({ ...p, texto: p.numero, classe: p.id === atual?.id ? 'atual' : '', popup: `${p.numero}. ${p.endereco}` })),
     ...(rota.destino ? [{ ...rota.destino, texto: '⌂', classe: 'destino', popup: rota.destino.rotulo }] : []),
   ], [rota])
 

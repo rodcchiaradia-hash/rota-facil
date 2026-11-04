@@ -30,7 +30,12 @@ export default function Mapa({ pontos, caminho, posicao }) {
     if (caminho?.length) L.polyline(caminho, { color: '#1F6FEB', weight: 5, opacity: 0.8 }).addTo(grupo)
     pontos.forEach((p) => {
       const m = L.marker([p.lat, p.lon], { icon: pino(p.texto, p.classe || '') }).addTo(grupo)
-      if (p.popup) m.bindPopup(p.popup)
+      if (p.popup) {
+        // Texto puro: endereço lido da foto ou digitado nunca vira HTML.
+        const caixaPopup = document.createElement('div')
+        caixaPopup.textContent = p.popup
+        m.bindPopup(caixaPopup)
+      }
     })
     if (posicao) L.circleMarker([posicao.lat, posicao.lon], { radius: 9, color: '#fff', weight: 3, fillColor: '#1F6FEB', fillOpacity: 1 }).addTo(grupo)
     // Enquadra só na primeira vez, para não tirar o zoom que a pessoa escolheu.
@@ -48,7 +53,7 @@ export default function Mapa({ pontos, caminho, posicao }) {
 export function pontosDaRota(rota) {
   return [
     { ...rota.partida, texto: '▶', classe: 'partida', popup: 'Partida' },
-    ...rota.paradas.map((p, i) => ({ ...p, texto: p.numero ?? i + 1, popup: `<b>${p.numero ?? i + 1}.</b> ${p.endereco}` })),
+    ...rota.paradas.map((p, i) => ({ ...p, texto: p.numero ?? i + 1, popup: `${p.numero ?? i + 1}. ${p.endereco}` })),
     ...(rota.destino ? [{ ...rota.destino, texto: '⌂', classe: 'destino', popup: rota.destino.rotulo }] : []),
   ]
 }

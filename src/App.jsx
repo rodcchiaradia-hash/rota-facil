@@ -13,6 +13,7 @@ import MinhasRotas from './MinhasRotas.jsx'
 import Dashboard from './Dashboard.jsx'
 import Financeiro from './Financeiro.jsx'
 import ResumoDia from './ResumoDia.jsx'
+import MeusDados from './MeusDados.jsx'
 import { encerrarDia } from './dia.js'
 
 // Telas que o ajudante não pode abrir.
@@ -73,7 +74,8 @@ export default function App() {
     conteudo = <Cadastro modo="editar" onConcluir={guardarPerfil} />
   } else {
     const telas = {
-      cadastro: () => <Cadastro modo="editar" perfilInicial={perfil} onConcluir={guardarPerfil} onCancelar={voltar} />,
+      cadastro: () => <Cadastro modo="editar" perfilInicial={perfil} onConcluir={guardarPerfil} onCancelar={voltar}
+        rodape={<MeusDados usuario={usuario} onApagou={() => { setAjudante(false); setTela('inicio'); setTelaLogin('entrar'); setUsuario(null) }} />} />,
       iniciodia: () => <InicioDia usuario={usuario} perfil={perfil} onComecou={voltar} onVoltar={voltar} />,
       minhasrotas: () => <MinhasRotas usuario={usuario} perfil={perfil} onVoltar={voltar} />,
       dashboard: () => <Dashboard usuario={usuario} perfil={perfil} ajudante={ajudante} onVoltar={voltar} />,
@@ -111,8 +113,10 @@ function SenhaDoDono({ email, onOk, onCancelar }) {
   const [erro, setErro] = useState('')
   async function enviar(e) {
     e.preventDefault()
-    if (await conferirSenha(email, senha)) onOk()
-    else setErro('Senha incorreta.')
+    try {
+      if (await conferirSenha(email, senha)) onOk()
+      else setErro('Senha incorreta.')
+    } catch (err) { setErro(err.message) }
   }
   return (
     <div className="fundo-janela" onClick={onCancelar}>
