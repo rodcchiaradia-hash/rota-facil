@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { buscarCep, formatarCep, montarEndereco } from './cep.js'
 import { lerTextoDaFoto, extrairEndereco } from './ocr.js'
 import CameraFoto from './CameraFoto.jsx'
+import { lembrarEndereco, enderecosDoCep, buscarEnderecos } from './enderecos.js'
 
 const VAZIO = { cep: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '' }
 
@@ -16,10 +17,14 @@ export default function ConfirmarPacote({ codigo = '', comecarPelaFoto = true, o
   const [textoLido, setTextoLido] = useState('')
   const [progresso, setProgresso] = useState(null)
   const numeroRef = useRef(null)
+  const [busca, setBusca] = useState('')
 
   const mudar = (nome) => (e) => setCampos((c) => ({ ...c, [nome]: e.target.value }))
   const endereco = montarEndereco(campos)
   const completo = campos.rua.trim() && campos.numero.trim()
+  const doCep = enderecosDoCep(campos.cep).filter((e) => montarEndereco(e) !== endereco)
+  const achados = busca.trim().length >= 3 ? buscarEnderecos(busca) : []
+  const usar = (e) => { setCampos({ ...VAZIO, cep: e.cep, rua: e.rua, numero: e.numero, complemento: e.complemento || '', bairro: e.bairro, cidade: e.cidade }); setBusca(''); setAviso('') }
 
   async function preencherPeloCep(cep, focarNumero) {
     const digitos = cep.replace(/\D/g, '')
@@ -67,6 +72,7 @@ export default function ConfirmarPacote({ codigo = '', comecarPelaFoto = true, o
 
   function salvar(e) {
     e.preventDefault()
+    if (completo) lembrarEndereco(campos)
     onSalvar({ codigo, endereco: completo ? endereco : '', campos: completo ? campos : null })
   }
 
@@ -113,12 +119,21 @@ export default function ConfirmarPacote({ codigo = '', comecarPelaFoto = true, o
         <p>{endereco || 'Digite o CEP para começar'}</p>
       </div>
 
+      {!completo && (
+        <label>
+          Endereço já usado <span className="opcional">(busque pela rua ou bairro)</span>
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Ex.: Rua das Flores 120" />
+        </label>
+      )}
+      {achados.length > 0 && <Sugestoes lista={achados} onUsar={usar} />}
+
       <label>
         CEP
         <input value={campos.cep} onChange={mudouCep} inputMode="numeric" autoComplete="postal-code" placeholder="00000-000" />
       </label>
       {buscando && <p className="dica">Buscando endereço…</p>}
       {aviso && <p className="erro">{aviso}</p>}
+      {doCep.length > 0 && <Sugestoes titulo="Você já entregou neste CEP:" lista={doCep} onUsar={usar} />}
       <label>
         Rua
         <input value={campos.rua} onChange={mudar('rua')} placeholder="Preenchida pelo CEP" />
@@ -152,5 +167,18 @@ export default function ConfirmarPacote({ codigo = '', comecarPelaFoto = true, o
       )}
       {onCancelar && <button type="button" className="botao-texto perigo" onClick={onCancelar}>Cancelar</button>}
     </form>
+  )
+}
+
+function Sugestoes({ titulo, lista, onUsar }) {
+  return (
+    <div className="sugestoes">
+      {titulo && <span>{titulo}</span>}
+      {lista.map((e) => (
+        <button key={montarEndereco(e)} type="button" onClick={() => onUsar(e)}>
+          {montarEndereco(e)}{e.vezes > 1 && <small> · {e.vezes}×</small>}
+        </button>
+      ))}
+    </div>
   )
 }

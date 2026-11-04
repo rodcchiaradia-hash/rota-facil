@@ -282,3 +282,8 @@ textarea:focus { outline: 2px solid var(--azul); border-color: transparent; }
 .seletor-empresa { font: inherit; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid var(--borda); background: #fff; }
 .linha-preco { flex-direction: row; align-items: center; justify-content: space-between; font-weight: 400; color: var(--suave); }
 .linha-preco input { width: 110px; text-align: right; }
+
+.sugestoes { display: flex; flex-direction: column; gap: 6px; }
+.sugestoes > span { font-size: 0.85rem; color: var(--texto-suave, #5b6472); }
+.sugestoes button { text-align: left; padding: 10px 12px; border: 1px solid #c9d6ea; border-radius: 10px; background: #f3f7fd; color: inherit; font: inherit; font-size: 0.92rem; }
+.sugestoes small { color: #5b6472; }

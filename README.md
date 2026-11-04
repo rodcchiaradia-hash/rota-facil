@@ -16,6 +16,8 @@ Endereço do app: https://rodcchiaradia-hash.github.io/rota-facil/
   combustível (preço do litro editável); lista dos dias com o resumo de cada um.
 - Financeiro: semana, quinzena e mês; ganhos, média por dia, combustível e o que sobra; "A receber" com a
   data de vencimento de cada rota e o botão "Recebi"; valor, prazo e pagamento editáveis por dia.
+- Banco de endereços: todo endereço salvo fica guardado no celular. Ao digitar o CEP aparecem os endereços já
+  usados nesse CEP, e dá para buscar pela rua ou bairro; um toque preenche tudo.
 - Modo ajudante: o ajudante usa os passos do dia, mas não vê financeiro, valores, minhas rotas nem cadastro.
   Para sair do modo é preciso a senha do dono.
 - Cadastro em etapas: dados pessoais (nome, CPF validado, nascimento 18+, celular), e-mail e senha com
